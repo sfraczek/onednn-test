@@ -107,7 +107,9 @@ void softmax_example(dnnl::engine::kind engine_kind) {
             = softmax_forward::desc(prop_kind::forward_inference, src_md, axis);
 
     dnnl::primitive_attr attr;
-    attr.set_output_scales(0, {127.0f});
+    if (!std::is_same<DT, float>::value) {
+        attr.set_output_scales(0, {127.0f});
+    }
     // Create primitive descriptor.
     auto softmax_pd = softmax_forward::primitive_desc(softmax_d, attr, engine);
 
