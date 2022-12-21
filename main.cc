@@ -34,7 +34,8 @@ template<typename T>
 void print(std::string name, std::vector<T> data) {
     std::cout << name << ": ";
     for (const T& val : data) {
-        std::cout << val << " ";
+        std::cout.operator<<(val);
+        std::cout << " ";
     }
     std::cout << "\n";
 }
@@ -72,7 +73,7 @@ void softmax_example(dnnl::engine::kind engine_kind) {
 
     // Allocate buffer.
     std::vector<float> usr_src_data(product(src_dims));
-    std::vector<DT> src_data(product(src_dims));
+    std::vector<DT> src_data(usr_src_data.size());
 
     std::generate(usr_src_data.begin(), usr_src_data.end(), []() {
         static int i = 0;
@@ -84,13 +85,13 @@ void softmax_example(dnnl::engine::kind engine_kind) {
     print("max_usr_src_data", max_usr_src_data);
 
     if (!std::is_same<DT, float>::value) {
-        float scale = static_cast<float>(std::numeric_limits<DT>::max()) / max_usr_src_data;
-        std::transform(usr_src_data.begin(), usr_src_data.end(), src_data.begin(), [scale](DT value){return static_cast<DT>(value*scale);});
+        const float scale = static_cast<float>(std::numeric_limits<DT>::max()) / max_usr_src_data;
+        std::transform(usr_src_data.cbegin(), usr_src_data.cend(), src_data.begin(), [scale](float value){return value*scale;});
     } else {
         std::copy(usr_src_data.begin(), usr_src_data.end(), src_data.begin());
     }
 
-    print("usr_src_data", usr_src_data);
+    print("src_data", src_data);
 
     // Create src memory descriptor and memory object.
     auto src_md = memory::desc(src_dims, onednn_dtype<DT>(), tag::nc);
