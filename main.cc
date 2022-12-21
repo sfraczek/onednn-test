@@ -108,7 +108,9 @@ void softmax_example(dnnl::engine::kind engine_kind) {
             = softmax_forward::desc(prop_kind::forward_inference, src_md, axis);
 
     dnnl::primitive_attr attr;
-    attr.set_output_scales(0, {127.0f});
+    int mask = 0;
+    const std::vector<float> scales{127};
+    attr.set_output_scales(mask, scales); // << this line causes problem
     // Create primitive descriptor.
     auto softmax_pd = softmax_forward::primitive_desc(softmax_d, attr, engine);
 
