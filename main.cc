@@ -47,11 +47,11 @@ void print(std::string name, T val) {
 
 template<typename T>
 auto onednn_dtype() {
-    if (std::is_same<DT, float>::value)
+    if (std::is_same<T, float>::value)
         return dt::f32;
-    if (std::is_same<DT, uint8_t>::value)
+    if (std::is_same<T, uint8_t>::value)
         return dt::u8;
-    if (std::is_same<DT, int8_t>::value)
+    if (std::is_same<T, int8_t>::value)
         return dt::s8;
     throw std::invalid_argument("Unexpected dtype");
 }
@@ -105,17 +105,17 @@ void softmax_example(dnnl::engine::kind engine_kind) {
 
     // Create operation descriptor.
     auto softmax_d
-            = softmax_forward::desc(prop_kind::forward_inference, src_md, axis);
+            = softmax_v2_forward::desc(prop_kind::forward_inference, algorithm::softmax_accurate, src_md, src_md, axis);
 
     dnnl::primitive_attr attr;
     int mask = 0;
-    const std::vector<float> scales{127};
+    const std::vector<float> scales{std::numeric_limits<DT>::max()};
     attr.set_output_scales(mask, scales); // << this line causes problem
     // Create primitive descriptor.
-    auto softmax_pd = softmax_forward::primitive_desc(softmax_d, attr, engine);
+    auto softmax_pd = softmax_v2_forward::primitive_desc(softmax_d, attr, engine);
 
     // Create the primitive.
-    auto softmax_prim = softmax_forward(softmax_pd);
+    auto softmax_prim = softmax_v2_forward(softmax_pd);
 
     // Primitive arguments. Set up in-place execution by assigning src as DST.
     std::unordered_map<int, memory> softmax_args;
